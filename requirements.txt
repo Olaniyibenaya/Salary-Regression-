@@ -1,0 +1,12 @@
+# Core libraries
+numpy
+pandas
+scikit-learn
+tensorflow==2.15.0
+
+# Web app
+streamlit
+pyngrok
+
+# Utility
+pickle5  # optional for older Python versions, safe to includ

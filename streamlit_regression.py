@@ -54,6 +54,15 @@ geo_encoded_df = pd.DataFrame(geo_encoded, columns=onehot_encoder_geo.get_featur
 # Merge all features
 input_data = pd.concat([input_data.drop(['Geography'], axis=1).reset_index(drop=True), geo_encoded_df], axis=1)
 
+# ✅ Ensure same column order as during training
+expected_columns = scaler.feature_names_in_  # works if you trained scaler in sklearn >=1.0
+missing_cols = [col for col in expected_columns if col not in input_data.columns]
+
+# Add any missing columns with 0s
+for col in missing_cols:
+    input_data[col] = 0
+
+
 # Scale the input
 input_data_scaled = scaler.transform(input_data)
 
@@ -62,4 +71,5 @@ predicted_salary = model.predict(input_data_scaled)[0][0]
 
 # ---- Display Result ----
 st.subheader("💼 Predicted Estimated Salary:")
+
 st.success(f"${predicted_salary:,.2f}")

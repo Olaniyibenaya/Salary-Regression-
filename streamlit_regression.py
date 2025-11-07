@@ -51,20 +51,24 @@ input_data['Gender'] = label_encoder_gender.transform(input_data['Gender'])
 geo_encoded = onehot_encoder_geo.transform([[geography]]).toarray()
 geo_encoded_df = pd.DataFrame(geo_encoded, columns=onehot_encoder_geo.get_feature_names_out(['Geography']))
 
-# Merge all features
-input_data = pd.concat([input_data.drop(['Geography'], axis=1).reset_index(drop=True), geo_encoded_df], axis=1)
+# Merge everything
+input_data = pd.concat([input_data.reset_index(drop=True), geo_encoded_df], axis=1)
 
-# ✅ Ensure same column order as during training
-expected_columns = scaler.feature_names_in_  # works if you trained scaler in sklearn >=1.0
-missing_cols = [col for col in expected_columns if col not in input_data.columns]
+# ✅ Ensure columns match what the scaler was trained on
+if hasattr(scaler, 'feature_names_in_'):
+    expected_columns = scaler.feature_names_in_
+    # Add any missing columns with 0s
+    for col in expected_columns:
+        if col not in input_data.columns:
+            input_data[col] = 0
+    # Reorder columns
+    input_data = input_data[expected_columns]
+else:
+    st.warning("Scaler has no feature name information; ensure columns are in the same order as training.")
 
-# Add any missing columns with 0s
-for col in missing_cols:
-    input_data[col] = 0
-
-
-# Scale the input
+# Scale the data
 input_data_scaled = scaler.transform(input_data)
+
 
 # ---- Predict ----
 predicted_salary = model.predict(input_data_scaled)[0][0]
@@ -73,3 +77,4 @@ predicted_salary = model.predict(input_data_scaled)[0][0]
 st.subheader("💼 Predicted Estimated Salary:")
 
 st.success(f"${predicted_salary:,.2f}")
+
